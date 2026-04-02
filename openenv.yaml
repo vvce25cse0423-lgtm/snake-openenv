@@ -1,0 +1,5 @@
+name: SnakeEnv 
+version: 1.0.0 
+description: Classic Snake Game RL Environment 
+entry_point: environment:SnakeEnv 
+inference: inference.py 
