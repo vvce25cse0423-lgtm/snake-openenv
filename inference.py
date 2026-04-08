@@ -60,18 +60,39 @@ Reply with ONLY a single digit."""
         return env.action_space.sample()
 
 
-if __name__ == "__main__":
+def run_task(task_name, seed, steps):
+    """Run one task and return score strictly between 0 and 1."""
     env = get_env()
-    obs, info = reset(env, seed=42)
-    print("[START] task=snake_game", flush=True)
-
+    obs, info = reset(env, seed=seed)
     total_reward = 0
-    for i in range(10):
+    max_possible = steps * 10.0
+    completed_steps = 0
+
+    for i in range(steps):
         action = get_llm_action(env, obs, info)
         obs, reward, terminated, truncated, info = step(env, action)
         total_reward += reward
+        completed_steps = i + 1
         print(f"[STEP] step={i+1} reward={reward:.2f} score={info['score']} length={info['snake_length']}", flush=True)
         if terminated or truncated:
             break
 
-    print(f"[END] task=snake_game score={total_reward:.2f} steps={i+1}", flush=True)
+    # Score strictly between 0 and 1
+    raw_score = (total_reward + max_possible) / (2 * max_possible)
+    # Clamp to strictly (0, 1)
+    score = max(0.01, min(0.99, raw_score))
+    return score, completed_steps
+
+
+if __name__ == "__main__":
+    print("[START] task=survival_task", flush=True)
+    score1, steps1 = run_task("survival_task", seed=42, steps=10)
+    print(f"[END] task=survival_task score={score1:.4f} steps={steps1}", flush=True)
+
+    print("[START] task=food_collection_task", flush=True)
+    score2, steps2 = run_task("food_collection_task", seed=99, steps=10)
+    print(f"[END] task=food_collection_task score={score2:.4f} steps={steps2}", flush=True)
+
+    print("[START] task=navigation_task", flush=True)
+    score3, steps3 = run_task("navigation_task", seed=7, steps=10)
+    print(f"[END] task=navigation_task score={score3:.4f} steps={steps3}", flush=True)
